@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "images": [
+    {
+      "displayName": ".NET isolated 10",
+      "runtime": "dotnet-isolated",
+      "version": "10.0",
+      "functionsImage": "mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated10.0-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/dotnet/aspnet:10.0",
+      "sample": "samples/chiseled/dotnet-isolated-10/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "available",
+      "buildValidation": true,
+      "notes": "Copy the customer .NET runtime separately from the framework used by the Functions host."
+    },
+    {
+      "displayName": ".NET isolated 11",
+      "runtime": "dotnet-isolated",
+      "version": "11.0",
+      "functionsImage": "mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated11.0-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/dotnet/aspnet:11.0-preview",
+      "sample": "samples/chiseled/dotnet-isolated-11/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "preview",
+      "buildValidation": true,
+      "notes": "Replace the preview donor with the released .NET 11 tag when available."
+    },
+    {
+      "displayName": "Java 25",
+      "runtime": "java",
+      "version": "25",
+      "functionsImage": "mcr.microsoft.com/azure-functions/java:4-java25-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/openjdk/jdk:25-ubuntu",
+      "sample": "samples/chiseled/java-25/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "available",
+      "buildValidation": true,
+      "notes": "The sample copies the Microsoft OpenJDK 25 runtime tree."
+    },
+    {
+      "displayName": "Node.js 24",
+      "runtime": "node",
+      "version": "24",
+      "functionsImage": "mcr.microsoft.com/azure-functions/node:4-node24-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/oryx/node:24-ubuntu-noble-20260820.1",
+      "sample": "samples/chiseled/node-24/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "available",
+      "buildValidation": true,
+      "notes": "Pin or update the Oryx donor through this manifest when the supported runtime changes."
+    },
+    {
+      "displayName": "Node.js 26",
+      "runtime": "node",
+      "version": "26",
+      "functionsImage": "mcr.microsoft.com/azure-functions/node:4-node26-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/oryx/node:26-ubuntu-resolute-20260904.3",
+      "sample": "samples/chiseled/node-26/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "available",
+      "buildValidation": true,
+      "notes": "The current donor also requires libatomic.so.1 to be copied into the final image."
+    },
+    {
+      "displayName": "PowerShell 7.6",
+      "runtime": "powershell",
+      "version": "7.6",
+      "functionsImage": "mcr.microsoft.com/azure-functions/powershell:4-powershell7.6-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/powershell:preview-7.6-ubuntu-noble",
+      "sample": "samples/chiseled/powershell-7.6/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "preview",
+      "buildValidation": true,
+      "notes": "Replace the preview donor with the released PowerShell 7.6 tag when available."
+    },
+    {
+      "displayName": "Python 3.14",
+      "runtime": "python",
+      "version": "3.14",
+      "functionsImage": "mcr.microsoft.com/azure-functions/python:4-python3.14-chiseled",
+      "runtimeDonor": "mcr.microsoft.com/oryx/python:3.14-ubuntu-noble-20260820.1",
+      "sample": "samples/chiseled/python-3.14/Dockerfile",
+      "architecture": "linux/amd64",
+      "releaseState": "available",
+      "buildValidation": true,
+      "notes": "Install application dependencies into .python_packages before the final stage."
+    }
+  ]
+}

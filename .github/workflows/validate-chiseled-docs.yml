@@ -1,0 +1,46 @@
+name: Validate Chiseled documentation
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "documentation/**"
+      - "samples/**"
+      - "eng/update-chiseled-docs.ps1"
+      - ".github/workflows/validate-chiseled-docs.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check generated documentation and Dockerfile contracts
+        shell: pwsh
+        run: ./eng/update-chiseled-docs.ps1 -Check
+
+      - name: Lint Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: |
+            README.md
+            documentation/**/*.md
+            samples/**/*.md
+
+      - name: Check Markdown links
+        uses: umbrelladocs/action-linkspector@v1
+        with:
+          fail_on_error: true
+          filter_mode: nofilter
+
+      - name: Validate available sample builds
+        shell: pwsh
+        run: |
+          $manifest = Get-Content -Raw samples/chiseled/manifest.json | ConvertFrom-Json
+          foreach ($image in $manifest.images | Where-Object buildValidation) {
+            docker buildx build --check --file $image.sample .
+          }

@@ -1,9 +1,59 @@
 # See ../../../documentation/resolute-chiseled.md.
-FROM mcr.microsoft.com/oryx/node:24-ubuntu-noble-20260820.1 AS runtime
+ARG UBUNTU_RELEASE=26.04
+ARG CHISEL_VERSION=v1.5.0
+
+# Add Bash and OpenSSH for App Service terminal and legacy SSH access.
+# Remove this stage and the matching final-stage COPY, EXPOSE, and ENTRYPOINT if remote access isn't needed.
+FROM ubuntu:${UBUNTU_RELEASE} AS remote-tools
+ARG TARGETARCH=amd64
+ARG UBUNTU_RELEASE
+ARG CHISEL_VERSION
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates openssl && \
+    rm -rf /var/lib/apt/lists/*
+ADD "https://github.com/canonical/chisel/releases/download/${CHISEL_VERSION}/chisel_${CHISEL_VERSION}_linux_${TARGETARCH}.tar.gz" /tmp/chisel.tar.gz
+RUN tar -xzf /tmp/chisel.tar.gz -C /usr/bin && \
+    mkdir -p /staging-rootfs && \
+    chisel cut --release "ubuntu-${UBUNTU_RELEASE}" --root /staging-rootfs \
+        base-files_base \
+        base-passwd_data \
+        bash_bins \
+        coreutils_bins \
+        login_bins \
+        openssh-server_bins \
+        openssh-server_config && \
+    useradd --root /staging-rootfs --system --gid nogroup --home-dir /run/sshd --shell /usr/sbin/nologin sshd && \
+    root_password="$(openssl passwd -6 -salt appservice 'Docker!')" && \
+    printf 'root:%s:0:0:99999:7:::\nsshd:!:0:0:99999:7:::\n' "${root_password}" > /staging-rootfs/etc/shadow && \
+    chmod 640 /staging-rootfs/etc/shadow && \
+    printf '%s\n' \
+        'Port 2222' \
+        'ListenAddress 0.0.0.0' \
+        'LoginGraceTime 180' \
+        'X11Forwarding yes' \
+        'PasswordAuthentication yes' \
+        'PermitEmptyPasswords no' \
+        'PermitRootLogin yes' \
+        'UsePAM no' \
+        'Subsystem sftp internal-sftp' \
+        > /staging-rootfs/etc/ssh/sshd_config && \
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'set -e' \
+        'ssh-keygen -A' \
+        '/usr/sbin/sshd' \
+        'exec /azure-functions-host/Microsoft.Azure.WebJobs.Script.WebHost' \
+        > /staging-rootfs/startup.sh && \
+    chmod 755 /staging-rootfs/startup.sh
+
+FROM node:24 AS runtime
 
 FROM mcr.microsoft.com/azure-functions/node:4-node24-chiseled
 COPY --from=runtime /usr/local/bin/node /customer-runtime/bin/node
 ENV PATH="/customer-runtime/bin:${PATH}" \
     FUNCTIONS_WORKER_RUNTIME=node \
     FUNCTIONS_WORKER_RUNTIME_VERSION=24
+COPY --from=remote-tools /staging-rootfs /
 COPY . /home/site/wwwroot
+EXPOSE 80 2222
+ENTRYPOINT ["/startup.sh"]

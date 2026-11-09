@@ -26,20 +26,21 @@ listed in the supported-tags table.
 
 ## Build a customer image
 
-Use a normal tool-bearing image for restore, compilation, downloads, archive extraction, and
-package installation. Copy only the completed runtime and application artifacts into the final
-Azure Functions Chiseled stage.
+Use the language runtime image that you normally use for restore, compilation, downloads,
+archive extraction, and package installation. The samples use the official customer-facing
+`.NET`, Node.js, Python, Java, and PowerShell runtime images rather than internal build images.
+Copy only the completed runtime and application artifacts into the final Azure Functions
+Chiseled stage.
 
-The final stage has no shell, so:
+The published base has no shell or package manager, so:
 
-- don't use shell-form `RUN`, `CMD`, or `ENTRYPOINT` instructions in that stage;
 - use multi-stage `COPY --from=...` instructions for runtime files and native dependencies;
 - copy the application to `/home/site/wwwroot`;
-- retain the exec-form Functions host entry point supplied by the base image.
+- prepare any additional operating-system tools in an earlier stage.
 
 The [samples](../samples/chiseled/README.md) show this pattern for every documented runtime.
 
-## Shells, BusyBox, and remote debugging
+## Shell and SSH access
 
 The published base image intentionally has:
 
@@ -49,16 +50,28 @@ The published base image intentionally has:
 - no `curl` or `wget`;
 - no SSH server.
 
-For a manually authored image, you can copy
-[BusyBox](https://busybox.net/) from a separate build stage when basic shell utilities are
-required. BusyBox alone does not enable the Kudu SSH experience. Kudu SSH also requires a
-compatible SSH server, configuration, and startup process.
+The samples add Bash, core utilities, and OpenSSH from Ubuntu 26.04 package slices by using
+[Canonical Chisel](https://documentation.ubuntu.com/chisel/en/latest/). The startup script creates
+SSH host keys, starts `sshd` on port 2222, and then starts the Functions host.
 
-Client-generated Chiseled Dockerfiles can include Bash and the required Kudu tooling in the
-customer-owned image.
+For Azure App Service:
+
+- the browser terminal and `az webapp exec` require a shell but don't require an SSH server;
+- legacy Kudu WebSSH and `az webapp ssh` can require the SSH server;
+- port 2222 is for the App Service SSH integration and should not be published directly;
+- the samples use the App Service root password `Docker!`; protect access to the SCM site with
+  authentication, authorization, and network restrictions.
+
+See [Open a container shell in Azure App Service](https://learn.microsoft.com/azure/app-service/configure-linux-open-ssh-session)
+for the current connection options.
+
+If your app doesn't need interactive shell or legacy SSH access, remove the `remote-tools` stage,
+the `COPY --from=remote-tools` instruction, port `2222` from `EXPOSE`, and the custom
+`ENTRYPOINT`. The customer image then retains the shell-free startup behavior of the published
+base image.
 
 ## Vulnerability scanning
 
 The base retains package metadata used by common vulnerability scanners. Scan the final customer
-image, not only the Azure Functions base, because the customer language runtime and copied tools
-add their own packages and servicing responsibilities.
+image, not only the Azure Functions base. The customer language runtime, Bash, OpenSSH, and other
+copied tools add their own packages and servicing responsibilities.

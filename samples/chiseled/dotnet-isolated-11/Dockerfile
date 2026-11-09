@@ -1,15 +1,24 @@
 # See ../../../documentation/resolute-chiseled.md.
-FROM mcr.microsoft.com/dotnet/sdk:11.0-preview AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet publish --configuration Release --output /app/publish
+RUN dotnet publish *.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:11.0-preview AS runtime
+# This image uses a chiseled (minimal) Azure Functions base image.
+# It doesn't include the .NET 11 runtime, so the next step copies it in from the official .NET image.
+FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated11.0-chiseled AS final
+COPY --from=mcr.microsoft.com/dotnet/aspnet:11.0 /usr/share/dotnet /usr/share/dotnet
 
-FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated11.0-chiseled
-COPY --from=runtime /usr/share/dotnet /customer-runtime/dotnet
-ENV DOTNET_ROOT=/customer-runtime/dotnet \
-    PATH="/customer-runtime/dotnet:${PATH}" \
+# The base image doesn't include a shell. For debugging purposes, you can add other dependencies as needed.
+# For example, uncomment the lines below to add a lightweight shell using BusyBox.
+# BusyBox doesn't include an SSH server, so it doesn't enable SSH access to your app on App Service.
+# COPY --from=busybox:uclibc /bin/busybox /bin/busybox
+# RUN ["/bin/busybox", "--install", "-s", "/bin"]
+
+ENV DOTNET_ROOT=/usr/share/dotnet
+ENV PATH="/usr/share/dotnet:${PATH}" \
     FUNCTIONS_WORKER_RUNTIME=dotnet-isolated \
-    FUNCTIONS_WORKER_RUNTIME_VERSION=11.0
+    AzureWebJobsScriptRoot=/home/site/wwwroot \
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+
 COPY --from=build /app/publish /home/site/wwwroot

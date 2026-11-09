@@ -19,9 +19,6 @@ can end earlier when an Azure Functions runtime version is retired.
 > Availability and support state can change during rollout. Check the image registry and Azure
 > Functions release guidance before using a sample in production.
 
-<!-- BEGIN GENERATED CHISELED TAGS -->
-<!-- Run eng/update-chiseled-docs.ps1 to update this section. -->
-
 | Runtime | Floating public tag | Platform | Sample | State |
 | --- | --- | --- | --- | --- |
 | .NET isolated 10 | `mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated10.0-chiseled` | linux/amd64 | [samples/chiseled/dotnet-isolated-10/Dockerfile](../samples/chiseled/dotnet-isolated-10/Dockerfile) | available |
@@ -31,4 +28,4 @@ can end earlier when an Azure Functions runtime version is retired.
 | Node.js 26 | `mcr.microsoft.com/azure-functions/node:4-node26-chiseled` | linux/amd64 | [samples/chiseled/node-26/Dockerfile](../samples/chiseled/node-26/Dockerfile) | available |
 | PowerShell 7.6 | `mcr.microsoft.com/azure-functions/powershell:4-powershell7.6-chiseled` | linux/amd64 | [samples/chiseled/powershell-7.6/Dockerfile](../samples/chiseled/powershell-7.6/Dockerfile) | preview |
 | Python 3.14 | `mcr.microsoft.com/azure-functions/python:4-python3.14-chiseled` | linux/amd64 | [samples/chiseled/python-3.14/Dockerfile](../samples/chiseled/python-3.14/Dockerfile) | available |
-<!-- END GENERATED CHISELED TAGS -->
+| Python 3.15 | `mcr.microsoft.com/azure-functions/python:4-python3.15-chiseled` | linux/amd64 | [samples/chiseled/python-3.15/Dockerfile](../samples/chiseled/python-3.15/Dockerfile) | planned |

@@ -10,10 +10,6 @@ Resolute Chiseled public tags use the existing Azure Functions runtime repositor
 These are floating tags. When published, they move to the latest serviced Azure Functions v4
 image for that runtime version. Pin a digest when deployment reproducibility is required.
 
-A `-chiseled` tag does not imply that `latest`, `-appservice`, or `-nightly` variants exist.
-Support is limited by both the language runtime lifecycle and the Ubuntu Resolute lifecycle, and
-can end earlier when an Azure Functions runtime version is retired.
-
 > [!IMPORTANT]
 >
 > Availability and support state can change during rollout. Check the image registry and Azure
